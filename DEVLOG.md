@@ -48,3 +48,57 @@
 - `useEffect` の返り値（クリーンアップ関数）でリスナーを解除する
 
 ---
+
+## 2026-03-29: GitHubリモートリポジトリ連携
+
+### やったこと
+
+1. GitHub上で空のリポジトリ `HoW-History-of-Worlds` を作成
+2. ローカルリポジトリにリモートを登録
+3. mainブランチにpush
+
+### 使ったコマンド
+
+```bash
+git remote add origin git@github.com:yodan7/HoW-History-of-Worlds.git
+# 「origin」という名前でリモートURLを登録する（SSH接続）
+
+git branch -M main
+# 現在のブランチ名を「main」に変更（デフォルトがmasterの場合の対策）
+
+git push -u origin main
+# ローカルのmainをoriginのmainへpush
+# -u は「この組み合わせを次回からのデフォルトにする」という意味
+# 次回からは git push だけでOK
+```
+
+---
+
+## Git運用ルール
+
+### Conventional Commits（コミットメッセージの規則）
+
+フォーマット: `<type>: <内容>`
+
+| type | 使うタイミング | 例 |
+|---|---|---|
+| `feat` | 新機能を追加 | `feat: globe.glで3D地球儀を表示` |
+| `fix` | バグ修正 | `fix: リサイズ時に地球儀が崩れる問題を修正` |
+| `docs` | ドキュメントのみの変更 | `docs: CONTEXT.mdに開発スタイルを追記` |
+| `style` | CSSなど見た目の変更 | `style: 地球儀の背景色を黒に変更` |
+| `refactor` | 動作を変えないコード整理 | `refactor: App.jsxのuseEffect分割` |
+| `chore` | 設定ファイルなど雑務 | `chore: vite.config.jsにエイリアスを追加` |
+
+### ブランチ運用（個人開発シンプル版）
+
+```bash
+# 機能開発時
+git checkout -b feature/機能名   # 作業ブランチを作る
+# ...作業...
+git checkout main                 # mainに戻る
+git merge feature/機能名          # マージ
+
+# 小さい修正はmainに直接コミットでもOK
+```
+
+---
