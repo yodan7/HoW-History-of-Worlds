@@ -80,14 +80,14 @@ git push -u origin main
 
 フォーマット: `<type>: <内容>`
 
-| type | 使うタイミング | 例 |
-|---|---|---|
-| `feat` | 新機能を追加 | `feat: globe.glで3D地球儀を表示` |
-| `fix` | バグ修正 | `fix: リサイズ時に地球儀が崩れる問題を修正` |
-| `docs` | ドキュメントのみの変更 | `docs: CONTEXT.mdに開発スタイルを追記` |
-| `style` | CSSなど見た目の変更 | `style: 地球儀の背景色を黒に変更` |
-| `refactor` | 動作を変えないコード整理 | `refactor: App.jsxのuseEffect分割` |
-| `chore` | 設定ファイルなど雑務 | `chore: vite.config.jsにエイリアスを追加` |
+| type       | 使うタイミング           | 例                                          |
+| ---------- | ------------------------ | ------------------------------------------- |
+| `feat`     | 新機能を追加             | `feat: globe.glで3D地球儀を表示`            |
+| `fix`      | バグ修正                 | `fix: リサイズ時に地球儀が崩れる問題を修正` |
+| `docs`     | ドキュメントのみの変更   | `docs: CONTEXT.mdに開発スタイルを追記`      |
+| `style`    | CSSなど見た目の変更      | `style: 地球儀の背景色を黒に変更`           |
+| `refactor` | 動作を変えないコード整理 | `refactor: App.jsxのuseEffect分割`          |
+| `chore`    | 設定ファイルなど雑務     | `chore: vite.config.jsにエイリアスを追加`   |
 
 ### ブランチ運用（個人開発シンプル版）
 
@@ -102,3 +102,38 @@ git merge feature/機能名          # マージ
 ```
 
 ---
+
+## useRefとは
+
+useStateと違い、再レンダリングを引き起こさないで値を保持する
+
+```typescript
+sampleRef = useRef<string>("");
+
+sample.current = "hoge";
+```
+
+でも.currentを使ったり使わなかったりして値を更新するのがよくわからない
+
+---
+
+---
+
+## Globe.glについて
+
+```typescript
+new Globe(<domElement>, { configOptions })
+```
+
+この形で初期化をできる。AIが提案した形だと.でのアクセスも可能なのかな？
+
+```typescript
+const myGlobe = new Globe(myDOMElement)
+  .globeImageUrl(myImageUrl)
+  .pointsData(myData);
+```
+
+この書き方もあったわ
+
+下記のリンクに使い方が乗っていた。日本語翻訳をしたらわからなくはないかもしれない。
+https://globe.gl/
