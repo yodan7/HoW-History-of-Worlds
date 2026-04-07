@@ -52,9 +52,11 @@ GeoGuessr（地理当てゲーム）の学習ツールとして作り始めたWe
 
 - **PC向けWebアプリ**（スマホは後回し）
 - フロントエンドのみで完結させる（バックエンドなし、静的サイト）
-- ライブラリ候補：globe.gl または Three.js
-- 国データ：REST Countries API（無料）
-- AI駆動開発：Antigravityと協働してスピード重視で作る
+- **言語: TypeScript（TSX）** — JavaScript は使わない
+- **フレームワーク: Vite + React**
+- **3D地球儀: globe.gl**（Three.js ベース）
+- **国データ: REST Countries API**（無料）
+- AI駆動開発：Antigravityと協働して進める
 
 ---
 

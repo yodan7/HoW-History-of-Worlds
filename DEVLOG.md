@@ -103,37 +103,81 @@ git merge feature/機能名          # マージ
 
 ---
 
-## useRefとは
+## useRef とは（→ knowledge参照）
 
-useStateと違い、再レンダリングを引き起こさないで値を保持する
-
-```typescript
-sampleRef = useRef<string>("");
-
-sample.current = "hoge";
-```
-
-でも.currentを使ったり使わなかったりして値を更新するのがよくわからない
+`useState` と違い、値が変わっても再レンダリングを引き起こさない。
+詳細は `docs/knowledge/react-useRef-and-ref.md` 参照。
 
 ---
 
----
-
-## Globe.glについて
+## Globe.gl の初期化（TypeScript正式版）
 
 ```typescript
-new Globe(<domElement>, { configOptions })
-```
-
-この形で初期化をできる。AIが提案した形だと.でのアクセスも可能なのかな？
-
-```typescript
-const myGlobe = new Globe(myDOMElement)
+// TypeScript の型定義に基づく正しい書き方
+// new Globe(element, configOptions?) で初期化
+const globe = new Globe(containerRef.current)
   .globeImageUrl(myImageUrl)
   .pointsData(myData);
 ```
 
-この書き方もあったわ
+- JS のドキュメントには `Globe()(element)` とあるが、内部の TypeScript 型定義では `new Globe(element)` が正しい
+- メソッドチェーン（`.xxx().yyy()`）で設定を連続して書ける
+- 公式サイト: https://globe.gl/
 
-下記のリンクに使い方が乗っていた。日本語翻訳をしたらわからなくはないかもしれない。
-https://globe.gl/
+---
+
+## 2026-04-02: 国ポリゴン追加・クリックイベント実装
+
+### やったこと
+
+- GeoJSON データを fetch で取得して地球儀に国ポリゴンを重ねた
+- `onPolygonClick` で国クリック時に `console.log` でデータ確認
+- GeoJSON URL: `https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson`
+  - 最初に使った URL（vasturiano の GitHub）は 404 → D3 graph gallery に変更
+
+### fetch の流れ
+
+```typescript
+fetch(url)
+  .then(res => res.json())   // レスポンスを JSON に変換（非同期）
+  .then(data => {            // 変換後のデータを使う
+    globe.polygonsData(data.features)
+  })
+```
+
+---
+
+## 2026-04-02〜07: JavaScript → TypeScript 移行
+
+### なぜ移行したか
+
+- 開発中に JSX（JavaScript）で書いていることに気づいた
+- TypeScript のほうが型安全で学習にも良い → 移行を決定
+
+### やったこと
+
+1. `npm install -D typescript @types/react @types/react-dom` でTS関連パッケージ追加
+2. `tsconfig.json` / `tsconfig.app.json` / `tsconfig.node.json` を作成（Vite react-ts テンプレートと同等の構成）
+3. `src/App.jsx` → `src/App.tsx`、`src/main.jsx` → `src/main.tsx` にリネーム
+4. `vite.config.js` → `vite.config.ts` にリネーム
+
+### TypeScript に準拠させるために修正した箇所
+
+| 変更内容 | JS版 | TS版 |
+|---|---|---|
+| useRef の型指定 | `useRef(null)` | `useRef<HTMLDivElement>(null)` |
+| null チェック | なし | `if (!containerRef.current) return;` |
+| Globe 初期化 | `Globe()(element)` | `new Globe(element)` |
+| polygon の型 | 型なし | `polygon as GeoFeature`（自作型でキャスト） |
+
+### tsconfig の構成（Vite react-ts ベストプラクティス）
+
+```
+tsconfig.json       ← 親ファイル（app と node を参照するだけ）
+tsconfig.app.json   ← src/ のコード用（jsx: react-jsx など）
+tsconfig.node.json  ← vite.config.ts 用
+```
+
+この構成は `npm create vite@latest -- --template react-ts` で生成されるものと同一。
+
+---
