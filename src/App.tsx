@@ -1,15 +1,33 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Globe from "globe.gl";
 import "./App.css";
 
 //GeoJSONの1ポリゴン（国）の型定義を明示的に行う
 type GeoFeature = {
   properties: Record<string, unknown>;
+  id: string;
+};
+
+//REST Countries APIのレスポンスの型を明記
+type CountryInfo = {
+  name: { common: string; official: string };
+  capital: string[];
+  flags: { svg: string; png: string };
+  region: string;
+  subregion: string;
+  population: number;
+  languages: Record<string, string>;
+  tld: string[];
 };
 
 function App() {
   //地球儀を描く場所（div）への参照を作ってる（再レンダリングされない変数管理？）
   const containerRef = useRef<HTMLDivElement>(null);
+
+  //クリックした国の情報を管理するstate
+  const [selectedCountry, setSelectedCountry] = useState<CountryInfo | null>(
+    null,
+  );
 
   useEffect(() => {
     // null チェック：current が null なら何もしない（early return）
@@ -53,7 +71,20 @@ function App() {
           .onPolygonClick((polygon) => {
             // polygon は globe.gl 内部では object 型 → GeoFeature として扱うと伝える
             const feature = polygon as GeoFeature;
+
+            //なぜかunknown型をstringへ
+            const countryname = feature.properties.name as string;
+
+            //REST Countries APIから国情報を取得
+            fetch(`https://restcountries.com/v3.1/name/${encodeURIComponent(countryname)}?fullText=true`)
+              .then((res) => res.json())
+              .then((countryData) => {
+                setSelectedCountry(countryData[0]);
+              });
+
+
             console.log(feature.properties);
+            console.log("id: ", feature.id);
           });
       });
 
@@ -70,3 +101,4 @@ function App() {
 }
 
 export default App;
+  
