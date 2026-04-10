@@ -16,3 +16,4 @@
 - トピックごとに 1 ファイル
 - 「なぜ必要か」→「どう動くか」→「実際のコード」の順で書く
 - 後で見返したときに 1〜2 分で思い出せるレベルを目指す
+- 2026-04-10: [Why TS can drop extensions but CSS cannot](docs/knowledge/import-extensions.md)

@@ -5,14 +5,18 @@
 ---
 
 ## 📍 現在の状態 / 次のタスク (Current State / Next Action)
+
 **【AIへの指示】会話の開始時に必ずここを読んで現在地を把握すること**
 
-- **現在の状態**: 
+- **現在の状態**:
   - `globe.gl` を使って3D地球儀の描画が完了している。
-  - GeoJSONを使って国のポリゴンデータを適用済み。
-  - ポリゴンクリック時に REST Countries API を叩き、クリックされた国のデータを取得してState (`selectedCountry`) に保存。コンソールにも出力できている。（TypeScriptの型定義も完了済）
-- **次のタスク (Next Action)**: 
-  - 取得してStateに保存された国データ（`selectedCountry`）を、画面上（右上の情報パネルなど）にUIとして表示する。
+  - REST Countries APIのデータ取得処理を `fetch().then()` から最新の `async/await` 構文にリファクタリング完了。
+  - 取得した国データ（`selectedCountry`）を画面にオーバーレイ表示するUIの実装が完了（Reactの条件付きレンダリングを活用）。
+  - Tailwind CSS (v4) を導入し、CSSファイルを行ったり来たりせずに直接JSX内でスタイリング可能になった。
+  - エディタ保存時の自動フォーマット・Lint設定が機能している。
+- **次のタスク (Next Action)**:
+  - Tailwind CSS を活用して、国旗画像によるパネルサイズの崩れやパディングの問題を解消する。
+  - 情報パネルの幅固定とレスポンシブ対応（ウィンドウサイズに応じたレイアウト調整）。
 
 ---
 
@@ -71,7 +75,7 @@
 
 ### 使ったコマンド
 
-```bash
+\`\`\`bash
 git remote add origin git@github.com:yodan7/HoW-History-of-Worlds.git
 # 「origin」という名前でリモートURLを登録する（SSH接続）
 
@@ -82,7 +86,7 @@ git push -u origin main
 # ローカルのmainをoriginのmainへpush
 # -u は「この組み合わせを次回からのデフォルトにする」という意味
 # 次回からは git push だけでOK
-```
+\`\`\`
 
 ---
 
@@ -103,7 +107,7 @@ git push -u origin main
 
 ### ブランチ運用（個人開発シンプル版）
 
-```bash
+\`\`\`bash
 # 機能開発時
 git checkout -b feature/機能名   # 作業ブランチを作る
 # ...作業...
@@ -111,7 +115,7 @@ git checkout main                 # mainに戻る
 git merge feature/機能名          # マージ
 
 # 小さい修正はmainに直接コミットでもOK
-```
+\`\`\`
 
 ---
 
@@ -124,13 +128,13 @@ git merge feature/機能名          # マージ
 
 ## Globe.gl の初期化（TypeScript正式版）
 
-```typescript
+\`\`\`typescript
 // TypeScript の型定義に基づく正しい書き方
 // new Globe(element, configOptions?) で初期化
 const globe = new Globe(containerRef.current)
   .globeImageUrl(myImageUrl)
   .pointsData(myData);
-```
+\`\`\`
 
 - JS のドキュメントには `Globe()(element)` とあるが、内部の TypeScript 型定義では `new Globe(element)` が正しい
 - メソッドチェーン（`.xxx().yyy()`）で設定を連続して書ける
@@ -149,13 +153,14 @@ const globe = new Globe(containerRef.current)
 
 ### fetch の流れ
 
-```typescript
+\`\`\`typescript
 fetch(url)
-  .then(res => res.json())   // レスポンスを JSON に変換（非同期）
-  .then(data => {            // 変換後のデータを使う
-    globe.polygonsData(data.features)
-  })
-```
+  .then((res) => res.json()) // レスポンスを JSON に変換（非同期）
+  .then((data) => {
+    // 変換後のデータを使う
+    globe.polygonsData(data.features);
+  });
+\`\`\`
 
 ---
 
@@ -175,21 +180,25 @@ fetch(url)
 
 ### TypeScript に準拠させるために修正した箇所
 
-| 変更内容 | JS版 | TS版 |
-|---|---|---|
-| useRef の型指定 | `useRef(null)` | `useRef<HTMLDivElement>(null)` |
-| null チェック | なし | `if (!containerRef.current) return;` |
-| Globe 初期化 | `Globe()(element)` | `new Globe(element)` |
-| polygon の型 | 型なし | `polygon as GeoFeature`（自作型でキャスト） |
-
-### tsconfig の構成（Vite react-ts ベストプラクティス）
-
-```
-tsconfig.json       ← 親ファイル（app と node を参照するだけ）
-tsconfig.app.json   ← src/ のコード用（jsx: react-jsx など）
-tsconfig.node.json  ← vite.config.ts 用
-```
-
-この構成は `npm create vite@latest -- --template react-ts` で生成されるものと同一。
+- `src/main.tsx`: `getElementById("root")` が null の可能性を考慮し `!` でアサーション
+- `src/App.tsx`: `useRef<HTMLDivElement>(null)` 型を明示
+- globe.gl の `onPolygonClick` の引数 `polygon` が `object` 型になるため、`GeoFeature` を自作して対応
 
 ---
+
+## 2026-04-09: UIパネルの実装とTailwind CSS (v4) 導入
+
+### やったこと
+
+- API通信の記述を `async/await` と `try/catch` を使ったモダンな構文へ移行。
+- Reactの JSX 内で `{selectedCountry && ...}` を用いた条件付きレンダリングを実装。
+- 最新の **Tailwind CSS v4** を導入 (`@tailwindcss/vite` プラグインと `src/index.css` への `@import "tailwindcss";` 追記のみで完了)。
+- 画面右上に `absolute` を用いて、地球儀の上に国情報パネル（背景半透明など）を重ねて表示。
+
+### 学んだこと・メモ
+
+- **\`<img>\`タグの注意点**: React(JSX)において \`<img>\` は空要素。\`<img>なんか文字</img>\` と書くとエラーでReact全体がクラッシュし、画面が真っ白（地球儀が消えた状態）になる。正しくは \`<img src="..." alt="..." />\` である。
+- **絶対配置 (absolute)**: `position: absolute` を指定しないと、地球儀のキャンバスの上にUIが乗らず、ページ全体が縦に伸びて大きくレイアウトが崩れる。
+- **Tailwindのコンテナサイズ幅の罠**: 幅（`width`）を指定しないコンテナは中身（画像など）の大きさに引っ張られて伸び縮みする。画像のアスペクト比が変わるとパネル全体のサイズまで変わるので、親に固定幅（`w-80`など）や制御クラスが必須。
+- **Tailwind v4の簡略化**: `tailwind.config.js` を生成するコマンドは使われなくなり、新しいViteプラグインの仕組みでより簡単に導入できるよう進化した。
+
