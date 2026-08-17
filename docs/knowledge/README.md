@@ -4,12 +4,14 @@
 
 ## ファイル一覧
 
-| ファイル | 内容 |
-|---|---|
-| [react-useRef-and-ref.md](./react-useRef-and-ref.md) | useRef フックと ref プロパティの仕組み |
-| [js-callback-and-arguments.md](./js-callback-and-arguments.md) | コールバック関数と引数の仕組み |
-| [ts-migration-from-js.md](./ts-migration-from-js.md) | JavaScript → TypeScript 移行手順・tsconfig 構成 |
+| ファイル                                                                        | 内容                                              |
+| ------------------------------------------------------------------------------- | ------------------------------------------------- |
+| [react-useRef-and-ref.md](./react-useRef-and-ref.md)                             | useRef フックと ref プロパティの仕組み            |
+| [js-callback-and-arguments.md](./js-callback-and-arguments.md)                   | コールバック関数と引数の仕組み                    |
+| [ts-migration-from-js.md](./ts-migration-from-js.md)                             | JavaScript → TypeScript 移行手順・tsconfig 構成  |
 | [ts-type-annotations-and-assertions.md](./ts-type-annotations-and-assertions.md) | 型指定・null チェック・型アサション（as）・自作型 |
+| [geojson-and-globe-gl.md](./geojson-and-globe-gl.md)                             | GeoJSON と globe.gl の違い・色設定の担当範囲     |
+| [tailwind-css.md](./tailwind-css.md)                                             | tailwindCSSに困ったときに見るファイル             |
 
 ## 方針
 
