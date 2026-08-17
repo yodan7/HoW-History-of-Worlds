@@ -1,12 +1,5 @@
 @import "tailwindcss";
 
-/* ブラウザのデフォルト余白をリセット */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 /* html・body を画面いっぱいに */
 html,
 body {
