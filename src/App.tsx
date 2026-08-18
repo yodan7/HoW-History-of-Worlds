@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import Globe, { GlobeInstance } from "globe.gl";
+import { COUNTRY_NOTES } from "./data/country-notes";
 import "./App.css";
 
 // GeoJSONの1ポリゴン（国）の型定義を明示的に行う
+// 地球儀上の情報
 type GeoFeature = {
   properties: Record<string, unknown>;
   id: string;
@@ -10,6 +12,7 @@ type GeoFeature = {
 
 // REST Countries APIのレスポンスの型を明記
 // version 5に合わせて更新
+// 国情報まとめAPIからの情報
 type CountryInfo = {
   names: {
     common: string;
@@ -18,6 +21,7 @@ type CountryInfo = {
       zho: { common: string; official: string };
     };
   };
+  codes: { alpha_3: string }; // （表示用）REST Countries API側のID
   capitals: [{ name: string | undefined }]; // 国の首都の名前（undefinedになる国もある、南極など）
   flag: { url_svg: string | undefined }; // 国旗のSVG画像のURL（ロシアが表示されないのでダミー画像が必要）
   region: string;
@@ -39,9 +43,13 @@ const POLYGON_STYLE = {
   // 通常の国の枠線の色
   defaultStrokeColor: "#00c8ff",
   // 選択中の国の色
-  selectedCapColor: "red",
+  selectedCapColor: "rgba(255, 30, 150, 0.3)",
+  // 選択中の国の側面色
+  selectedSideColor: "rgba(255, 30, 150, 0.3)",
+  // 選択中の国の側面色
+  selectedStrokeColor: "rgba(255, 30, 150, 0.8)",
   // ホバー中の国の色
-  hoveredCapColor: "black",
+  hoveredCapColor: "rgba(0, 200, 255, 0.5)",
   // 通常の国の高さ
   defaultAltitude: 0.015,
   // 選択中の国の高さ
@@ -65,10 +73,8 @@ function App() {
   // パネル開閉State
   const [isPanelExpanded, setIsPanelExpanded] = useState(false);
 
-  // 選択した国のGEOJson側のalpha-3のID
-  const [selectedCountryCode, setSelectedCountryCode] = useState<string | null>(
-    null,
-  );
+  // 選択した国のGEOJson側のID
+  const [selectedGeoId, setSelectedGeoId] = useState<string | null>(null);
 
   // -------------------------------------------------------------------------------useEffect等
 
@@ -116,6 +122,19 @@ function App() {
           .polygonStrokeColor(() => POLYGON_STYLE.defaultStrokeColor)
           // ポリゴンの高さを少し上げる
           .polygonAltitude(() => POLYGON_STYLE.defaultAltitude)
+          // ポリゴンのラベル表示
+          .polygonLabel((polygon) => {
+            // 整理してから渡したほうがすっきりする
+            const feature = polygon as GeoFeature;
+            const geoId = feature.id;
+            const geoName = feature.properties.name as string | undefined;
+            const countryNote = COUNTRY_NOTES[geoId];
+            console.log(polygon);
+
+            return `<b>
+                    ${geoName ?? "NONE"}（${geoId ?? "---"}）</b>
+                    <div>${countryNote?.jaName ?? "なし"}</div>`;
+          })
 
           // ポリゴンのクリックイベントを設定（クリックした国がpolygonに入り実行される処理を定義）
           // ------------------------------------------------------クリックしたときはこれ以下の処理が実行される
@@ -128,7 +147,7 @@ function App() {
             console.log("clicked", feature, feature.id);
 
             // IDだけを先にStateに保存
-            setSelectedCountryCode(feature.id);
+            setSelectedGeoId(feature.id);
 
             // クリックした情報を確認して色を変える
             console.log("polygon", polygon);
@@ -137,6 +156,16 @@ function App() {
                 d === polygon
                   ? POLYGON_STYLE.selectedCapColor
                   : POLYGON_STYLE.defaultCapColor,
+              )
+              .polygonSideColor((d) =>
+                d === polygon
+                  ? POLYGON_STYLE.selectedSideColor
+                  : POLYGON_STYLE.defaultSideColor,
+              )
+              .polygonStrokeColor((d) =>
+                d === polygon
+                  ? POLYGON_STYLE.selectedStrokeColor
+                  : POLYGON_STYLE.defaultStrokeColor,
               )
               .polygonAltitude((d) =>
                 d === polygon
@@ -163,7 +192,7 @@ function App() {
 
                 // console.log("responseData", responseData);
 
-                // console.log("data", countryData);
+                console.log("data", countryData);
                 // console.log("eng_name", countryData.demonyms.eng.f);
                 // console.log("capital", countryData.capitals[0].name);
                 // console.log("image", countryData.flag.url_svg);
@@ -206,23 +235,14 @@ function App() {
       // // {} を使うと複数行の関数を書ける。（アロー関数で書いた無名のコールバック関数）その場合は return で色を返す必要がある
       globe.polygonCapColor((d) => {
         const feature = d as GeoFeature;
-        return d === polygon
-          ? POLYGON_STYLE.hoveredCapColor
-          : (feature.id as string) === selectedCountryCode
-            ? POLYGON_STYLE.selectedCapColor
+        return (feature.id as string) === selectedGeoId
+          ? POLYGON_STYLE.selectedCapColor
+          : d === polygon
+            ? POLYGON_STYLE.hoveredCapColor
             : POLYGON_STYLE.defaultCapColor;
       });
-      // // 被るので少し浮かせる
-      // .polygonAltitude((d) => {
-      //   const feature = d as GeoFeature;
-      //   return d === polygon
-      //     ? 0.01
-      //     : (feature.id as string) === selectedCountryCode
-      //       ? 0.05
-      //       : 0;
-      // });
     });
-  }, [selectedCountryCode]);
+  }, [selectedGeoId]);
 
   return (
     <>
@@ -233,20 +253,20 @@ function App() {
         // 中身があれば選択した国の情報を表示する
         // color:bg(background)-blue(青系)/50(不透明度)
         // sm未満では左右端を等間隔に開けて配置、sm以上は右上に80, lg以上は25vw（画面25%）の幅で配置
-        selectedCountry && (
+        selectedCountry && selectedGeoId && (
           <div className="bg-gray-950/80 text-white border-3 border-cyan-600/70 rounded-lg absolute top-5 right-5 left-5 sm:left-auto sm:w-80 xl:w-[25vw] 2xl:w-[30vw] 2xl:min-h-[20vh] 2xl:max-h-[90vh] 2xl:text-xl">
             {/* なければundefinedになる */}
             <div className="p-4">
               <div className="flex flex-row">
                 <div className="basis-2/3">
                   <div className="text-[calc(2rem)] font-bold">
-                    {selectedCountry?.names?.common}
+                    {COUNTRY_NOTES[selectedGeoId]?.jaName ?? "---"}
                   </div>
-                  <div>
-                    首都：{selectedCountry?.capitals[0]?.name ?? "なし"}
-                  </div>
-                  <div>地域：{selectedCountry?.subregion ?? "なし"}</div>
-                  <div>TLD：{selectedCountry?.tlds[0] ?? "なし"}</div>
+                  <div>{selectedCountry?.names?.common}</div>
+                  <div>首都：{selectedCountry?.capitals[0]?.name ?? "---"}</div>
+                  <div>地域：{selectedCountry?.subregion ?? "---"}</div>
+                  <div>ID：{selectedGeoId ?? "---"}</div>
+                  <div>TLD：{selectedCountry?.tlds[0] ?? "---"}</div>
                 </div>
                 <div className="basis-1/3 flex items-center">
                   <img
