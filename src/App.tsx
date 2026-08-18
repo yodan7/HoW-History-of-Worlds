@@ -150,7 +150,7 @@ function App() {
             setSelectedGeoId(feature.id);
 
             // クリックした情報を確認して色を変える
-            console.log("polygon", polygon);
+            // console.log("polygon", polygon);
             globe
               .polygonCapColor((d) =>
                 d === polygon
@@ -192,7 +192,7 @@ function App() {
 
                 // console.log("responseData", responseData);
 
-                console.log("data", countryData);
+                // console.log("data", countryData);
                 // console.log("eng_name", countryData.demonyms.eng.f);
                 // console.log("capital", countryData.capitals[0].name);
                 // console.log("image", countryData.flag.url_svg);
